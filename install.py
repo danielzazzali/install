@@ -455,10 +455,11 @@ WantedBy=multi-user.target
 
         service_content_script = f"""[Unit]
 Description=Run Background Script on boot (AP Mode)
-After=network.target
+After=network-online.target multi-user.target
+Wants=network-online.target
 
 [Service]
-ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate; python3 /home/capstone/screen/script.py'
+ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate; python3 /home/capstone/screen/main.py'
 WorkingDirectory=/home/capstone/screen
 
 [Install]
@@ -479,12 +480,11 @@ WantedBy=multi-user.target
 
         service_content_script = f"""[Unit]
 Description=Run Background Script on boot (STA Mode)
-After=network.target
+After=network-online.target multi-user.target
+Wants=network-online.target
 
 [Service]
-ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate; python3 /home/capstone/screen/script.py'
-Restart=always
-User=pi
+ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate; python3 /home/capstone/screen/main.py'
 WorkingDirectory=/home/capstone/screen
 
 [Install]
