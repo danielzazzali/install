@@ -21,7 +21,7 @@ SERVICE_FILE_PATH = "/etc/systemd/system/linky.service"
 
 # Command definitions for easy access and modification
 DISABLE_NETWORK_MANAGER_WAIT_ONLINE = "sudo systemctl disable NetworkManager-wait-online.service"
-INSTALL_NGINX_GIT = "sudo apt install -y nginx git"
+INSTALL_PREREQUISITES = "sudo apt install -y nginx git i2c-tools libgpiod-dev python3-libgpiod"
 OPEN_RASPI_CONFIG = "sudo raspi-config"
 CAT_MODE_FILE = f"cat {MODE_FILE}"
 CREATE_BRIDGE_CONNECTION = "sudo nmcli connection add con-name 'BR0' ifname br0 type bridge ipv4.method auto ipv6.method disabled connection.autoconnect yes stp no"
@@ -216,7 +216,7 @@ def install_nginx_git():
     choice = input(f"{YELLOW}Do you want to install nginx and git? (y/n): {NC}").strip().lower()
     if choice == 'y':
         log_info("Installing nginx and git...")
-        run_command(INSTALL_NGINX_GIT)
+        run_command(INSTALL_PREREQUISITES)
         log_info("Successfully installed nginx and git.")
     else:
         log_warning("Skipped installing nginx and git.")
@@ -451,9 +451,7 @@ Description=Run Web Server on boot (AP Mode)
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c 'source /home/capstone/web/venv/bin/activate && python3 /home/capstone/web/app.py'
-Restart=always
-User=pi
+ExecStart=/bin/bash -c 'source /home/capstone/web/venv/bin/activate; python3 /home/capstone/web/app.py'
 WorkingDirectory=/home/capstone/web
 
 [Install]
@@ -465,9 +463,7 @@ Description=Run Background Script on boot (AP Mode)
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate && python3 /home/capstone/screen/script.py'
-Restart=always
-User=pi
+ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate; python3 /home/capstone/screen/script.py'
 WorkingDirectory=/home/capstone/screen
 
 [Install]
@@ -479,9 +475,7 @@ Description=Run Web Server on boot (STA Mode)
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c 'source /home/capstone/web/venv/bin/activate && python3 /home/capstone/web/app.py'
-Restart=always
-User=pi
+ExecStart=/bin/bash -c 'source /home/capstone/web/venv/bin/activate; python3 /home/capstone/web/app.py'
 WorkingDirectory=/home/capstone/web
 
 [Install]
@@ -493,7 +487,7 @@ Description=Run Background Script on boot (STA Mode)
 After=network.target
 
 [Service]
-ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate && python3 /home/capstone/screen/script.py'
+ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate; python3 /home/capstone/screen/script.py'
 Restart=always
 User=pi
 WorkingDirectory=/home/capstone/screen
