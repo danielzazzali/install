@@ -17,6 +17,7 @@ SITES_ENABLED_DEFAULT_81 = "/etc/nginx/sites-enabled/default81"
 UPDATE_IP_SCRIPT_PATH = "/home/capstone/nginx_ip_update.sh"
 SERVICE_PATH = "/etc/systemd/system/nginx_ip_update.service"
 TIMER_PATH = "/etc/systemd/system/nginx_ip_update.timer"
+SERVICE_FILE_PATH = "/etc/systemd/system/linky.service"
 
 # Command definitions for easy access and modification
 DISABLE_NETWORK_MANAGER_WAIT_ONLINE = "sudo systemctl disable NetworkManager-wait-online.service"
@@ -39,9 +40,40 @@ START_TIMER = "sudo systemctl start nginx-ip-update.timer"
 TIMER_STATUS = "sudo systemctl status nginx-ip-update.timer"
 SERVICE_STATUS = "sudo systemctl status nginx-ip-update.service"
 
-
 ETH_INTERFACE = "eth0"
 
+SERVICE_FILE_PATH_WEB = "/etc/systemd/system/web_server.service"
+SERVICE_FILE_PATH_SCRIPT = "/etc/systemd/system/background_script.service"
+
+REPO_URLS_STA = {
+    "web": "https://github.com/danielzazzali/webserver-daughterbox.git",
+    "screen": "https://github.com/ItiKvnAlf/oled-daughterbox.git"
+}
+
+REPO_URLS_AP = {
+    "web": "https://github.com/danielzazzali/webserver-motherhub.git",
+    "screen": "https://github.com/ItiKvnAlf/oled-motherhub.git"
+}
+
+CLONE_DIRS = {
+    "web": "/home/capstone/web",
+    "screen": "/home/capstone/screen"
+}
+
+CREATE_VENV_REPO = {
+    "web": "python3 -m venv /home/capstone/web/venv",
+    "screen": "python3 -m venv /home/capstone/screen/venv"
+}
+
+ACTIVATE_VENV_REPO = {
+    "web": "source /home/capstone/web/venv/bin/activate",
+    "screen": "source /home/capstone/screen/venv/bin/activate"
+}
+
+INSTALL_REQUIREMENTS_REPO = {
+    "web": "source /home/capstone/web/venv/bin/activate && pip install -r /home/capstone/web/requirements.txt",
+    "screen": "source /home/capstone/screen/venv/bin/activate && pip install -r /home/capstone/screen/requirements.txt"
+}
 
 nginx_conf_file_default = """
 server {
@@ -366,6 +398,115 @@ def verify_service_and_timer():
     run_command(SERVICE_STATUS)
 
 
+def setup_repositories(mode_choice):
+    """Clonar los repositorios, crear entornos virtuales y instalar sus dependencias según el modo."""
+    log_info(f"Cloning the repositories for mode: {mode_choice}...")
+
+    # Elegir repositorios según el modo
+    if mode_choice == 'AP':
+        repo_urls = REPO_URLS_AP
+    else:  # STA
+        repo_urls = REPO_URLS_STA
+
+    # Clonar repositorios
+    run_command(f"git clone {repo_urls['web']} {CLONE_DIRS['web']}")
+    run_command(f"git clone {repo_urls['screen']} {CLONE_DIRS['screen']}")
+
+    # Crear los entornos virtuales
+    log_info("Creating virtual environments...")
+    run_command(CREATE_VENV_REPO['web'])
+    run_command(CREATE_VENV_REPO['screen'])
+
+    # Instalar dependencias
+    log_info("Installing the requirements for the repositories...")
+    run_command(INSTALL_REQUIREMENTS_REPO['web'])
+    run_command(INSTALL_REQUIREMENTS_REPO['screen'])
+
+    log_info("Repositories set up and requirements installed successfully.")
+
+def create_service(service_path, service_content, service_name):
+    """Create a systemd service to run a script on boot."""
+    log_info(f"Creating the systemd service unit file for {service_name}...")
+
+    try:
+        with open(service_path, 'w') as file:
+            file.write(service_content)
+        os.chmod(service_path, 0o644)
+        log_info(f"Systemd service unit file created successfully at {service_path}")
+    except IOError:
+        log_error(f"Failed to create systemd service unit file for {service_name}")
+        return 1
+
+    log_info(f"Enabling and starting the {service_name} systemd service...")
+    run_command(RELOAD_SYSTEMD)
+    run_command(f"sudo systemctl enable {service_name}")
+    run_command(f"sudo systemctl start {service_name}")
+    log_info(f"Systemd service {service_name} enabled and started successfully.")
+
+def create_service_for_mode(mode_choice):
+    """Crea los servicios correspondientes según el modo."""
+    if mode_choice == 'AP':
+        service_content_web = f"""[Unit]
+Description=Run Web Server on boot (AP Mode)
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c 'source /home/capstone/web/venv/bin/activate && python3 /home/capstone/web/app.py'
+Restart=always
+User=pi
+WorkingDirectory=/home/capstone/web
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+        service_content_script = f"""[Unit]
+Description=Run Background Script on boot (AP Mode)
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate && python3 /home/capstone/screen/script.py'
+Restart=always
+User=pi
+WorkingDirectory=/home/capstone/screen
+
+[Install]
+WantedBy=multi-user.target
+"""
+    else:  # STA
+        service_content_web = f"""[Unit]
+Description=Run Web Server on boot (STA Mode)
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c 'source /home/capstone/web/venv/bin/activate && python3 /home/capstone/web/app.py'
+Restart=always
+User=pi
+WorkingDirectory=/home/capstone/web
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+        service_content_script = f"""[Unit]
+Description=Run Background Script on boot (STA Mode)
+After=network.target
+
+[Service]
+ExecStart=/bin/bash -c 'source /home/capstone/screen/venv/bin/activate && python3 /home/capstone/screen/script.py'
+Restart=always
+User=pi
+WorkingDirectory=/home/capstone/screen
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+    # Crear los servicios
+    create_service(SERVICE_FILE_PATH_WEB, service_content_web, "web_server.service")
+    create_service(SERVICE_FILE_PATH_SCRIPT, service_content_script, "background_script.service")
+
+
 def main():
     """Main function to execute the installation script."""
     log_info("Starting installation script for Raspberry Pi.")
@@ -375,6 +516,7 @@ def main():
     open_raspi_config()
 
     mode_choice = configure_mode()
+
     if mode_choice == 'AP':
         configure_ap_mode()
         create_nginx_file_ap()
@@ -387,6 +529,9 @@ def main():
         reload_systemd()
         enable_and_start_timer()
         verify_service_and_timer()
+
+    setup_repositories(mode_choice)
+    create_service_for_mode(mode_choice)
 
     log_info("Installation script completed successfully.")
 
