@@ -206,7 +206,7 @@ def disable_network_manager_service():
         log_warning("Skipped disabling NetworkManager-wait-online.service.")
 
 
-def install_nginx_git():
+def install_prerequisites():
     """Prompt to install nginx and git."""
     choice = input(f"{YELLOW}Do you want to install nginx and git? (y/n): {NC}").strip().lower()
     if choice == 'y':
@@ -537,7 +537,8 @@ def main():
     """Main function to execute the installation script."""
     log_info("Starting installation script for Raspberry Pi.")
     disable_network_manager_service()
-    install_nginx_git()
+    set_up_raspi_config()
+    install_prerequisites()
     show_wlan_instructions()
     open_raspi_config()
 
@@ -559,7 +560,6 @@ def main():
         verify_service_and_timer()
 
     create_service_for_mode(mode_choice)
-    set_up_raspi_config()
 
     log_info("Installation script completed successfully.")
 
