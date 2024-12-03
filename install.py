@@ -65,14 +65,9 @@ CREATE_VENV_REPO = {
     "screen": "python3 -m venv /home/capstone/screen/venv"
 }
 
-ACTIVATE_VENV_REPO = {
-    "web": "source /home/capstone/web/venv/bin/activate",
-    "screen": "source /home/capstone/screen/venv/bin/activate"
-}
-
 INSTALL_REQUIREMENTS_REPO = {
-    "web": "source /home/capstone/web/venv/bin/activate; pip install -r /home/capstone/web/requirements.txt",
-    "screen": "source /home/capstone/screen/venv/bin/activate; pip install -r /home/capstone/screen/requirements.txt"
+    "web": "bash -c 'source /home/capstone/web/venv/bin/activate; pip install -r /home/capstone/web/requirements.txt'",
+    "screen": "bash -c 'source /home/capstone/screen/venv/bin/activate; pip install -r /home/capstone/screen/requirements.txt'"
 }
 
 nginx_conf_file_default = """
