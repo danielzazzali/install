@@ -496,6 +496,43 @@ WantedBy=multi-user.target
     create_service(SERVICE_FILE_PATH_SCRIPT, service_content_script, "background_script.service")
 
 
+def set_up_raspi_config():
+    """
+    This function sets up Raspberry Pi configurations by enabling various interfaces.
+    """
+    print("Enabling Raspberry Pi interfaces...")
+
+    try:
+        # Enable I2C
+        print("Enabling I2C...")
+        subprocess.run(["sudo", "raspi-config", "nonint", "do_i2c", "0"], check=True)
+
+        # Enable SPI
+        print("Enabling SPI...")
+        subprocess.run(["sudo", "raspi-config", "nonint", "do_spi", "0"], check=True)
+
+        # Enable Serial
+        print("Enabling Serial...")
+        subprocess.run(["sudo", "raspi-config", "nonint", "do_serial_hw", "0"], check=True)
+
+        # Enable SSH
+        print("Enabling SSH...")
+        subprocess.run(["sudo", "raspi-config", "nonint", "do_ssh", "0"], check=True)
+
+        # Enable Camera
+        print("Enabling Camera...")
+        subprocess.run(["sudo", "raspi-config", "nonint", "do_camera", "0"], check=True)
+
+        # Disable raspi-config at Boot
+        print("Disabling raspi-config at Boot...")
+        subprocess.run(["sudo", "raspi-config", "nonint", "disable_raspi_config_at_boot", "0"], check=True)
+
+        print("All Raspberry Pi interfaces have been successfully configured.")
+
+    except subprocess.CalledProcessError as e:
+        print(f"An error occurred while configuring Raspberry Pi interfaces: {e}")
+
+
 def main():
     """Main function to execute the installation script."""
     log_info("Starting installation script for Raspberry Pi.")
@@ -522,6 +559,7 @@ def main():
         verify_service_and_timer()
 
     create_service_for_mode(mode_choice)
+    set_up_raspi_config()
 
     log_info("Installation script completed successfully.")
 
