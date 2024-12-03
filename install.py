@@ -21,7 +21,7 @@ SERVICE_FILE_PATH = "/etc/systemd/system/linky.service"
 
 # Command definitions for easy access and modification
 DISABLE_NETWORK_MANAGER_WAIT_ONLINE = "sudo systemctl disable NetworkManager-wait-online.service"
-INSTALL_PREREQUISITES = "sudo apt install -y nginx git" # i2c-tools libgpiod-dev python3-libgpiod
+INSTALL_PREREQUISITES = "sudo apt install -y nginx git i2c-tools libgpiod-dev python3-libgpiod"
 OPEN_RASPI_CONFIG = "sudo raspi-config"
 CAT_MODE_FILE = f"cat {MODE_FILE}"
 CREATE_BRIDGE_CONNECTION = "sudo nmcli connection add con-name 'BR0' ifname br0 type bridge ipv4.method auto ipv6.method disabled connection.autoconnect yes stp no"
