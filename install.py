@@ -71,8 +71,8 @@ ACTIVATE_VENV_REPO = {
 }
 
 INSTALL_REQUIREMENTS_REPO = {
-    "web": "source /home/capstone/web/venv/bin/activate && pip install -r /home/capstone/web/requirements.txt",
-    "screen": "source /home/capstone/screen/venv/bin/activate && pip install -r /home/capstone/screen/requirements.txt"
+    "web": "source /home/capstone/web/venv/bin/activate; pip install -r /home/capstone/web/requirements.txt",
+    "screen": "source /home/capstone/screen/venv/bin/activate; pip install -r /home/capstone/screen/requirements.txt"
 }
 
 nginx_conf_file_default = """
