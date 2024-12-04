@@ -211,13 +211,13 @@ def install_prerequisites():
 
     prerequisites = INSTALL_PREREQUISITES.split("-y")[-1]
 
-    choice = input(f"{YELLOW}Do you want to install {prerequisites}? (y/n): {NC}").strip().lower()
+    choice = input(f"{YELLOW}Do you want to install{prerequisites}? (y/n): {NC}").strip().lower()
     if choice == 'y':
-        log_info("Installing nginx and git...")
+        log_info(f"Installing{prerequisites}...")
         run_command(INSTALL_PREREQUISITES)
-        log_info("Successfully installed nginx and git.")
+        log_info(f"Successfully installed{prerequisites}.")
     else:
-        log_warning("Skipped installing nginx and git.")
+        log_warning(f"Skipped installation{prerequisites}.")
 
 
 def show_wlan_instructions():
@@ -457,7 +457,7 @@ WantedBy=multi-user.target
 """
 
         service_content_script = f"""[Unit]
-Description=Run Background Script on boot (AP Mode)
+Description=Run Screen Script on boot (AP Mode)
 After=network-online.target multi-user.target
 Wants=network-online.target
 
@@ -482,7 +482,7 @@ WantedBy=multi-user.target
 """
 
         service_content_script = f"""[Unit]
-Description=Run Background Script on boot (STA Mode)
+Description=Run Screen Script on boot (STA Mode)
 After=network-online.target multi-user.target
 Wants=network-online.target
 
@@ -494,9 +494,8 @@ WorkingDirectory=/home/capstone/screen
 WantedBy=multi-user.target
 """
 
-    # Crear los servicios
-    create_service(SERVICE_FILE_PATH_WEB, service_content_web, "web_server.service")
-    create_service(SERVICE_FILE_PATH_SCRIPT, service_content_script, "background_script.service")
+    create_service(SERVICE_FILE_PATH_WEB, service_content_web, "webserver.service")
+    create_service(SERVICE_FILE_PATH_SCRIPT, service_content_script, "screen.service")
 
 
 def set_up_raspi_config():
