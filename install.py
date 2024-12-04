@@ -21,7 +21,7 @@ SERVICE_FILE_PATH = "/etc/systemd/system/linky.service"
 
 # Command definitions for easy access and modification
 DISABLE_NETWORK_MANAGER_WAIT_ONLINE = "sudo systemctl disable NetworkManager-wait-online.service"
-INSTALL_PREREQUISITES = "sudo apt install -y nginx git i2c-tools libgpiod-dev python3-libgpiod python3-pip python3-setuptools"
+INSTALL_PREREQUISITES = "sudo apt install -y nginx git nmap i2c-tools libgpiod-dev python3-libgpiod python3-pip python3-setuptools"
 OPEN_RASPI_CONFIG = "sudo raspi-config"
 CAT_MODE_FILE = f"cat {MODE_FILE}"
 CREATE_BRIDGE_CONNECTION = "sudo nmcli connection add con-name 'BR0' ifname br0 type bridge ipv4.method auto ipv6.method disabled connection.autoconnect yes stp no"
@@ -208,7 +208,10 @@ def disable_network_manager_service():
 
 def install_prerequisites():
     """Prompt to install nginx and git."""
-    choice = input(f"{YELLOW}Do you want to install nginx and git? (y/n): {NC}").strip().lower()
+
+    prerequisites = INSTALL_PREREQUISITES.split("-y")[-1]
+
+    choice = input(f"{YELLOW}Do you want to install {prerequisites}? (y/n): {NC}").strip().lower()
     if choice == 'y':
         log_info("Installing nginx and git...")
         run_command(INSTALL_PREREQUISITES)
