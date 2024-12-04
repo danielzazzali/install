@@ -536,6 +536,24 @@ def set_up_raspi_config():
         print(f"An error occurred while configuring Raspberry Pi interfaces: {e}")
 
 
+def delete_all_nmcli_connections():
+    """Delete all network connections using nmcli."""
+    log_info("Deleting all network connections using nmcli...")
+    try:
+        # List all connections
+        result = subprocess.run(["nmcli", "-t", "-f", "NAME", "connection", "show"], capture_output=True, text=True,
+                                check=True)
+        connections = result.stdout.splitlines()
+
+        # Delete each connection
+        for connection in connections:
+            run_command(f"nmcli connection delete '{connection}'")
+
+        log_info("All network connections deleted successfully.")
+    except subprocess.CalledProcessError as e:
+        log_error(f"Failed to delete network connections: {e}")
+
+
 def main():
     """Main function to execute the installation script."""
     log_info("Starting installation script for Raspberry Pi.")
@@ -549,10 +567,12 @@ def main():
 
     if mode_choice == 'AP':
         setup_repositories(mode_choice)
+        delete_all_nmcli_connections()
         configure_ap_mode()
         create_nginx_file_ap()
     elif mode_choice == 'STA':
         setup_repositories(mode_choice)
+        delete_all_nmcli_connections()
         configure_sta_mode()
         create_nginx_files_sta()
         create_nginx_ip_update_script()
