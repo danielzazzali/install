@@ -149,7 +149,7 @@ Description=Update Nginx configuration with connected device IP
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/bash -c '{UPDATE_IP_SCRIPT_PATH}'
+ExecStart=/usr/bin/bash -c 'sudo {UPDATE_IP_SCRIPT_PATH}'
 Restart=always
 RestartSec=30s
 
