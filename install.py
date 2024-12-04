@@ -15,9 +15,8 @@ SITES_AVAILABLE_DEFAULT_81 = "/etc/nginx/sites-available/default81"
 SITES_ENABLED_DEFAULT = "/etc/nginx/sites-enabled/default"
 SITES_ENABLED_DEFAULT_81 = "/etc/nginx/sites-enabled/default81"
 UPDATE_IP_SCRIPT_PATH = "/home/capstone/nginx_ip_update.sh"
-SERVICE_PATH = "/etc/systemd/system/nginx_ip_update.service"
-TIMER_PATH = "/etc/systemd/system/nginx_ip_update.timer"
-SERVICE_FILE_PATH = "/etc/systemd/system/linky.service"
+UPDATE_NGINX_FILE_SERVICE_PATH = "/etc/systemd/system/nginx_ip_update.service"
+
 
 # Command definitions for easy access and modification
 DISABLE_NETWORK_MANAGER_WAIT_ONLINE = "sudo systemctl disable NetworkManager-wait-online.service"
@@ -35,15 +34,12 @@ CREATE_DEFAULT_SYMLINK = f"sudo ln -sf {SITES_AVAILABLE_DEFAULT} {SITES_ENABLED_
 CREATE_DEFAULT_81_SYMLINK = f"sudo ln -sf {SITES_AVAILABLE_DEFAULT_81} {SITES_ENABLED_DEFAULT_81}"
 RELOAD_NGINX = "sudo systemctl reload nginx"
 RELOAD_SYSTEMD = "sudo systemctl daemon-reload"
-ENABLE_TIMER = "sudo systemctl enable nginx_ip_update.timer"
-START_TIMER = "sudo systemctl start nginx_ip_update.timer"
-TIMER_STATUS = "sudo systemctl status nginx_ip_update.timer"
-SERVICE_STATUS = "sudo systemctl status nginx_ip_update.service"
+
 
 ETH_INTERFACE = "eth0"
 
-SERVICE_FILE_PATH_WEB = "/etc/systemd/system/web_server.service"
-SERVICE_FILE_PATH_SCRIPT = "/etc/systemd/system/background_script.service"
+SERVICE_FILE_PATH_WEB = "/etc/systemd/system/webserver.service"
+SERVICE_FILE_PATH_SCRIPT = "/etc/systemd/system/screen.service"
 
 REPO_URLS_STA = {
     "web": "https://github.com/danielzazzali/webserver-daughterbox.git",
@@ -150,25 +146,15 @@ EOL
 
 systemd_service_content = f"""[Unit]
 Description=Update Nginx configuration with connected device IP
+After=network.target
 
 [Service]
-ExecStart={UPDATE_IP_SCRIPT_PATH}
+ExecStart=/usr/bin/bash -c '{UPDATE_IP_SCRIPT_PATH}'
 Restart=always
 RestartSec=30s
 
 [Install]
 WantedBy=multi-user.target
-"""
-
-systemd_timer_content = """[Unit]
-Description=Run Nginx IP update script every 30 seconds
-
-[Timer]
-OnBootSec=5min
-OnUnitActiveSec=30s
-
-[Install]
-WantedBy=timers.target
 """
 
 def log_info(message):
@@ -355,45 +341,19 @@ def create_systemd_service():
     log_info("Creating the systemd service unit file...")
 
     try:
-        with open(SERVICE_PATH, 'w') as file:
+        with open(UPDATE_NGINX_FILE_SERVICE_PATH, 'w') as file:
             file.write(systemd_service_content)
-        log_info(f"Systemd service unit file created successfully at {SERVICE_PATH}")
+        log_info(f"Systemd service unit file created successfully at {UPDATE_NGINX_FILE_SERVICE_PATH}")
     except IOError:
         log_error("Failed to create systemd service unit file")
         return 1
 
-
-def create_systemd_timer():
-    """Create the systemd timer unit file."""
-    log_info("Creating the systemd timer unit file...")
-
-    try:
-        with open(TIMER_PATH, 'w') as file:
-            file.write(systemd_timer_content)
-        log_info(f"Systemd timer unit file created successfully at {TIMER_PATH}")
-    except IOError:
-        log_error("Failed to create systemd timer unit file")
-        return 1
 
 
 def reload_systemd():
     """Reload systemd to recognize the new service and timer."""
     log_info("Reloading systemd to recognize the new service and timer...")
     run_command(RELOAD_SYSTEMD)
-
-
-def enable_and_start_timer():
-    """Enable and start the systemd timer."""
-    log_info("Enabling and starting the systemd timer...")
-    run_command(ENABLE_TIMER)
-    run_command(START_TIMER)
-
-
-def verify_service_and_timer():
-    """Verify the status of the service and timer."""
-    log_info("Verifying the status of the service and timer...")
-    run_command(TIMER_STATUS)
-    run_command(SERVICE_STATUS)
 
 
 def setup_repositories(mode_choice):
@@ -553,6 +513,20 @@ def delete_all_nmcli_connections():
         log_error(f"Failed to delete network connections: {e}")
 
 
+def enable_and_start_service(service_path):
+    """Enable and start the systemd service."""
+    service_name = os.path.basename(service_path)
+    log_info(f"Enabling and starting the {service_name} service...")
+
+    try:
+        run_command(f"sudo systemctl enable {service_name}")
+        run_command(f"sudo systemctl start {service_name}")
+        log_info(f"Systemd service {service_name} enabled and started successfully.")
+    except subprocess.CalledProcessError as e:
+        log_error(f"Failed to enable and start the {service_name} service: {e}")
+
+
+
 def main():
     """Main function to execute the installation script."""
     log_info("Starting installation script for Raspberry Pi.")
@@ -576,10 +550,8 @@ def main():
         create_nginx_files_sta()
         create_nginx_ip_update_script()
         create_systemd_service()
-        create_systemd_timer()
         reload_systemd()
-        enable_and_start_timer()
-        verify_service_and_timer()
+        enable_and_start_service(UPDATE_NGINX_FILE_SERVICE_PATH)
 
     create_service_for_mode(mode_choice)
 
