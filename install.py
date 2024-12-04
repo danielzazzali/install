@@ -35,10 +35,10 @@ CREATE_DEFAULT_SYMLINK = f"sudo ln -sf {SITES_AVAILABLE_DEFAULT} {SITES_ENABLED_
 CREATE_DEFAULT_81_SYMLINK = f"sudo ln -sf {SITES_AVAILABLE_DEFAULT_81} {SITES_ENABLED_DEFAULT_81}"
 RELOAD_NGINX = "sudo systemctl reload nginx"
 RELOAD_SYSTEMD = "sudo systemctl daemon-reload"
-ENABLE_TIMER = "sudo systemctl enable nginx-ip-update.timer"
-START_TIMER = "sudo systemctl start nginx-ip-update.timer"
-TIMER_STATUS = "sudo systemctl status nginx-ip-update.timer"
-SERVICE_STATUS = "sudo systemctl status nginx-ip-update.service"
+ENABLE_TIMER = "sudo systemctl enable nginx_ip_update.timer"
+START_TIMER = "sudo systemctl start nginx_ip_update.timer"
+TIMER_STATUS = "sudo systemctl status nginx_ip_update.timer"
+SERVICE_STATUS = "sudo systemctl status nginx_ip_update.service"
 
 ETH_INTERFACE = "eth0"
 
