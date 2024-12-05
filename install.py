@@ -118,14 +118,14 @@ echo "Current IP address without mask: $CURRENT_IP_NO_MASK"
 
 echo "Scanning for connected devices..."
 
-CONNECTED_IP=$(nmap -sn $CURRENT_IP | grep 'Nmap scan report for' | awk '{{print $NF}}' | grep -v CURRENT_IP_NO_MASK)
+CONNECTED_IP=$(nmap -sn $CURRENT_IP | grep 'Nmap scan report for' | awk '{{print $NF}}' | grep -v $CURRENT_IP_NO_MASK)
 
 echo "Found connected device with IP: $CONNECTED_IP"
 
 # Check if a valid IP was found
-if [ -z "CONNECTED_IP" ]; then
-    echo "No device found connected."
-    exit 1
+if [ -z "$CONNECTED_IP" ]; then
+    echo "No device found connected. Using localhost instead."
+    CONNECTED_IP="localhost:8000"
 fi
 
 # Update the Nginx configuration with the found IP address
