@@ -108,7 +108,7 @@ nginx_ip_update_script = f"""#!/bin/bash
 
 NGINX_CONF_PATH_DEFAULT="{SITES_AVAILABLE_DEFAULT}"
 
-CURRENT_IP=$(nmcli -g IP4.ADDRESS connection show ETH | awk -F/ '{{print $1 "/" $2}}')
+CURRENT_IP=$(nmcli -g ipv4.addresses connection show ETH | awk -F/ '{{print $1 "/" $2}}')
 
 echo "Current IP address: $CURRENT_IP"
 
