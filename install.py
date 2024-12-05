@@ -365,25 +365,25 @@ def reload_systemd():
 
 
 def setup_repositories(mode_choice):
-    """Clonar los repositorios, crear entornos virtuales y instalar sus dependencias según el modo."""
+    """Clone the repositories, create virtual environments, and install requirements."""
     log_info(f"Cloning the repositories for mode: {mode_choice}...")
 
-    # Elegir repositorios según el modo
+    # Chose repo URLs based on mode
     if mode_choice == 'AP':
         repo_urls = REPO_URLS_AP
     else:  # STA
         repo_urls = REPO_URLS_STA
 
-    # Clonar repositorios
+    # Clone repositories
     run_command(f"git clone {repo_urls['web']} {CLONE_DIRS['web']}")
     run_command(f"git clone {repo_urls['screen']} {CLONE_DIRS['screen']}")
 
-    # Crear los entornos virtuales
+    # Create virtual environments
     log_info("Creating virtual environments...")
     run_command(CREATE_VENV_REPO['web'])
     run_command(CREATE_VENV_REPO['screen'])
 
-    # Instalar dependencias
+    # Install requirements
     log_info("Installing the requirements for the repositories...")
     run_command(INSTALL_REQUIREMENTS_REPO['web'])
     run_command(INSTALL_REQUIREMENTS_REPO['screen'])
@@ -410,7 +410,7 @@ def create_service(service_path, service_content, service_name):
     log_info(f"Systemd service {service_name} enabled and started successfully.")
 
 def create_service_for_mode(mode_choice):
-    """Crea los servicios correspondientes según el modo."""
+    """Create systemd services for the web server and screen script based on the mode."""
     if mode_choice == 'AP':
         service_content_web = f"""[Unit]
 Description=Run Web Server on boot (AP Mode)
