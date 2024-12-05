@@ -108,15 +108,23 @@ nginx_ip_update_script = f"""#!/bin/bash
 
 NGINX_CONF_PATH_DEFAULT="{SITES_AVAILABLE_DEFAULT}"
 
-# Network interface to check for connected devices (e.g., eth0)
-ETH_INTERFACE="{ETH_INTERFACE}"
+CURRENT_IP=$(nmcli -g IP4.ADDRESS connection show ETH | awk -F/ '{{print $1 "/" $2}}')
 
-# Get the IP address of the device connected to the interface eth0
-CONNECTED_IP=$(arp -i $ETH_INTERFACE | grep -v "incomplete" | grep -v "Address" | awk '{{print $1}}' | head -n 1)
+echo "Current IP address: $CURRENT_IP"
+
+CURRENT_IP_NO_MASK=$(echo $CURRENT_IP | awk -F/ '{{print $1}}')
+
+echo "Current IP address without mask: $CURRENT_IP_NO_MASK"
+
+echo "Scanning for connected devices..."
+
+CONNECTED_IP=$(nmap -sn $CURRENT_IP | grep 'Nmap scan report for' | awk '{{print $NF}}' | grep -v CURRENT_IP_NO_MASK)
+
+echo "Found connected device with IP: $CONNECTED_IP"
 
 # Check if a valid IP was found
-if [ -z "$CONNECTED_IP" ]; then
-    echo "No device found connected to interface $ETH_INTERFACE."
+if [ -z "CONNECTED_IP" ]; then
+    echo "No device found connected."
     exit 1
 fi
 
