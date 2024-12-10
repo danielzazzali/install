@@ -108,6 +108,39 @@ nginx_ip_update_script = f"""#!/bin/bash
 
 NGINX_CONF_PATH_DEFAULT="{SITES_AVAILABLE_DEFAULT}"
 
+# Check if the eth0 interface is connected
+INTERFACE_STATUS=$(nmcli -g GENERAL.STATE device show eth0 | awk '{{print $1}}')
+
+echo "Interface eth0 state: $INTERFACE_STATUS"
+
+if [ "$INTERFACE_STATUS" -ne 100 ]; then
+    echo "The eth0 interface is not connected. Using localhost as the target."
+    CONNECTED_IP="127.0.0.1:8000/no_camera"
+
+    # Update Nginx configuration with localhost
+    cat <<EOL > $NGINX_CONF_PATH_DEFAULT
+server {{
+    listen 80;
+    listen [::]:80;
+
+    server_name _;
+
+    location / {{
+        proxy_pass http://$CONNECTED_IP/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        add_header Cache-Control 'no-store, no-cache';
+    }}
+}}
+EOL
+
+    # Reload Nginx to apply the changes
+    {RELOAD_NGINX} || exit 1
+fi
+
 CURRENT_IP=$(nmcli -g ipv4.addresses connection show ETH | awk -F/ '{{print $1 "/" $2}}')
 
 echo "Current IP address: $CURRENT_IP"
@@ -121,12 +154,6 @@ echo "Scanning for connected devices..."
 CONNECTED_IP=$(nmap -sn $CURRENT_IP | grep 'Nmap scan report for' | awk '{{print $NF}}' | grep -v $CURRENT_IP_NO_MASK)
 
 echo "Found connected device with IP: $CONNECTED_IP"
-
-# Check if a valid IP was found
-if [ -z "$CONNECTED_IP" ]; then
-    echo "No device found connected. Using localhost instead."
-    CONNECTED_IP="localhost:8000"
-fi
 
 # Update the Nginx configuration with the found IP address
 cat <<EOL > $NGINX_CONF_PATH_DEFAULT
